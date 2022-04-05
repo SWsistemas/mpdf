@@ -236,41 +236,45 @@ class ColorConverter
 
 		$cores = $this->convertPercentCoreValues($mode, $cores);
 
-		switch ($mode) {
-			case 'rgb':
-				return [static::MODE_RGB, $cores[0], $cores[1], $cores[2]];
+		try {
+			switch ($mode) {
+				case 'rgb':
+					return [static::MODE_RGB, $cores[0], $cores[1], $cores[2]];
 
-			case 'rgba':
-				return [static::MODE_RGBA, $cores[0], $cores[1], $cores[2], $cores[3] * 100];
+				case 'rgba':
+					return [static::MODE_RGBA, $cores[0], $cores[1], $cores[2], $cores[3] * 100];
 
-			case 'cmyk':
-			case 'device-cmyk':
-				return [static::MODE_CMYK, $cores[0], $cores[1], $cores[2], $cores[3]];
+				case 'cmyk':
+				case 'device-cmyk':
+					return [static::MODE_CMYK, $cores[0], $cores[1], $cores[2], $cores[3]];
 
-			case 'cmyka':
-			case 'device-cmyka':
-				return [static::MODE_CMYKA, $cores[0], $cores[1], $cores[2], $cores[3], $cores[4] * 100];
+				case 'cmyka':
+				case 'device-cmyka':
+					return [static::MODE_CMYKA, $cores[0], $cores[1], $cores[2], $cores[3], $cores[4] * 100];
 
-			case 'hsl':
-				$conv = $this->colorModeConverter->hsl2rgb($cores[0] / 360, $cores[1], $cores[2]);
-				return [static::MODE_RGB, $conv[0], $conv[1], $conv[2]];
+				case 'hsl':
+					$conv = $this->colorModeConverter->hsl2rgb($cores[0] / 360, $cores[1], $cores[2]);
+					return [static::MODE_RGB, $conv[0], $conv[1], $conv[2]];
 
-			case 'hsla':
-				$conv = $this->colorModeConverter->hsl2rgb($cores[0] / 360, $cores[1], $cores[2]);
-				return [static::MODE_RGBA, $conv[0], $conv[1], $conv[2], $cores[3] * 100];
+				case 'hsla':
+					$conv = $this->colorModeConverter->hsl2rgb($cores[0] / 360, $cores[1], $cores[2]);
+					return [static::MODE_RGBA, $conv[0], $conv[1], $conv[2], $cores[3] * 100];
 
-			case 'spot':
-				$name = strtoupper(trim($cores[0]));
+				case 'spot':
+					$name = strtoupper(trim($cores[0]));
 
-				if (!isset($this->mpdf->spotColors[$name])) {
-					if (isset($cores[5])) {
-						$this->mpdf->AddSpotColor($cores[0], $cores[2], $cores[3], $cores[4], $cores[5]);
-					} else {
-						throw new \Mpdf\MpdfException(sprintf('Undefined spot color "%s"', $name));
+					if (!isset($this->mpdf->spotColors[$name])) {
+						if (isset($cores[5])) {
+							$this->mpdf->AddSpotColor($cores[0], $cores[2], $cores[3], $cores[4], $cores[5]);
+						} else {
+							throw new \Mpdf\MpdfException(sprintf('Undefined spot color "%s"', $name));
+						}
 					}
-				}
 
-				return [static::MODE_SPOT, $this->mpdf->spotColors[$name]['i'], $cores[1]];
+					return [static::MODE_SPOT, $this->mpdf->spotColors[$name]['i'], $cores[1]];
+			}
+		} catch (TypeError) {
+			// Quickfix error when using variables
 		}
 
 		return $c;
