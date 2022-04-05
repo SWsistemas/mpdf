@@ -3,6 +3,7 @@
 namespace Mpdf\Color;
 
 use Mpdf\Mpdf;
+use TypeError;
 
 class ColorConverter
 {
